@@ -6,6 +6,8 @@ import re
 import random
 import math
 
+from loadPicks import Group
+
 
 oddsTable = {}
 resultsTable = {}
@@ -90,10 +92,12 @@ def makeGames(winners) :
     return games
 
 
-def oneSimulation(games) :
+def oneSimulation(games, callback=None) :
     index = 0
     while len(games) >= 1 :
         winners = playRound(games)
+        if callable(callback) :
+            callback(winners, index)
         for w in winners :
             resultsTable[w][index] += 1
         #print(winners)
@@ -113,6 +117,9 @@ def setUpResults(games) :
         resultsTable[g[1]] = [0] * numRounds
 
 
+def simplePrint(winners) :
+    print(winners)
+
 
 # Main Method
 if __name__ == "__main__" :
@@ -122,16 +129,26 @@ if __name__ == "__main__" :
 
     games = firstGames
     #print(games)
+    g = Group("GetWell Madness", 4)
+    a = g.simplePrint
     
     # Simulate the appropriate number of times
     numSim = 1000
     for x in range(0, numSim) :
         print("\rSimulation %d of %d" % (x+1, numSim), end='')
-        champ = oneSimulation(games)
+        champ = oneSimulation(games, a)
+        g.endSimulation()
         #print(champ)
     #print(resultsTable)
     print()
+    print()
 
-    for team in resultsTable :
+    sortedResultsTable = list(resultsTable)
+    sortedResultsTable.sort(key=lambda x: (resultsTable[x][3], resultsTable[x][2], resultsTable[x][1], resultsTable[x][0]), reverse=True)
+    for team in sortedResultsTable :
         results = resultsTable[team]
         print("%s\t%5.1f\t%5.1f\t%5.1f\t%5.1f" % (team.ljust(20), results[0]/numSim*100, results[1]/numSim*100, results[2]/numSim*100, results[3]/numSim*100))
+
+    print()
+    print()
+    print(g)
